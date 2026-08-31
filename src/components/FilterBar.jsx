@@ -1,5 +1,4 @@
 import React from 'react';
-import { Search, RotateCcw } from 'lucide-react';
 
 export default function FilterBar({
   filters,
@@ -10,7 +9,7 @@ export default function FilterBar({
   genders,
   ageGroups,
   zones,
-  facilities,
+  wards,
   onReset
 }) {
   const handleChange = (field, value) => {
@@ -18,100 +17,92 @@ export default function FilterBar({
   };
 
   return (
-    <div className="glass-card filter-bar">
-      <div className="filter-grid">
-        <div className="filter-group">
-          <label>Search Patient / Ward</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              className="text-input"
-              placeholder="Search by name, address, ward..."
-              value={filters.search}
-              onChange={(e) => handleChange('search', e.target.value)}
-              style={{ paddingLeft: '2rem' }}
-            />
-            <Search size={14} style={{ position: 'absolute', left: '0.7rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <label>Season</label>
-          <select className="select-input" value={filters.season} onChange={(e) => handleChange('season', e.target.value)}>
-            <option value="All">All Seasons</option>
-            {seasons.map(s => (
-              <option key={s.name} value={s.name}>{s.name} ({s.count.toLocaleString()})</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label>Year</label>
-          <select className="select-input" value={filters.year} onChange={(e) => handleChange('year', e.target.value)}>
-            <option value="All">All Years</option>
+    <div className="filter-card">
+      <div className="filter-row">
+        <div className="filter-field">
+          <label className="filter-label">YEAR</label>
+          <select className="filter-select" value={filters.year} onChange={(e) => handleChange('year', e.target.value)}>
+            <option value="All">All</option>
             {years.map(y => (
-              <option key={y.name} value={y.name}>{y.name} ({y.count.toLocaleString()})</option>
+              <option key={y.name} value={y.name}>{y.name}</option>
             ))}
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>Month</label>
-          <select className="select-input" value={filters.month} onChange={(e) => handleChange('month', e.target.value)}>
-            <option value="All">All Months</option>
+        <div className="filter-field">
+          <label className="filter-label">SEASON</label>
+          <select className="filter-select" value={filters.season} onChange={(e) => handleChange('season', e.target.value)}>
+            <option value="All">All</option>
+            {seasons.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-field">
+          <label className="filter-label">MONTH</label>
+          <select className="filter-select" value={filters.month} onChange={(e) => handleChange('month', e.target.value)}>
+            <option value="All">All</option>
             {months.map(m => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>Sex / Gender</label>
-          <select className="select-input" value={filters.gender} onChange={(e) => handleChange('gender', e.target.value)}>
-            <option value="All">All Sexes</option>
-            {genders.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label>Age Bracket</label>
-          <select className="select-input" value={filters.ageGroup} onChange={(e) => handleChange('ageGroup', e.target.value)}>
-            <option value="All">All Age Groups</option>
-            {ageGroups.map(ag => (
-              <option key={ag} value={ag}>{ag}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label>Zone Name</label>
-          <select className="select-input" value={filters.zone} onChange={(e) => handleChange('zone', e.target.value)}>
-            <option value="All">All Zones</option>
+        <div className="filter-field">
+          <label className="filter-label">ZONE</label>
+          <select className="filter-select" value={filters.zone} onChange={(e) => handleChange('zone', e.target.value)}>
+            <option value="All">All</option>
             {zones.map(z => (
               <option key={z.name} value={z.name}>{z.name}</option>
             ))}
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>Facility Name</label>
-          <select className="select-input" value={filters.facility} onChange={(e) => handleChange('facility', e.target.value)}>
-            <option value="All">All Facilities</option>
-            {facilities.slice(0, 15).map(f => (
-              <option key={f.name} value={f.name}>{f.name.length > 22 ? f.name.substring(0, 22) + '...' : f.name}</option>
+        <div className="filter-field">
+          <label className="filter-label">WARD</label>
+          <select className="filter-select" value={filters.ward} onChange={(e) => handleChange('ward', e.target.value)}>
+            <option value="All">All</option>
+            {wards.map(w => (
+              <option key={w.name} value={w.name}>{w.name}</option>
             ))}
           </select>
         </div>
 
-        <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
-          <label style={{ visibility: 'hidden' }}>Reset</label>
-          <button className="btn-secondary" onClick={onReset} style={{ justifyContent: 'center' }}>
-            <RotateCcw size={14} />
-            <span>Reset Filters</span>
-          </button>
+        <div className="filter-field">
+          <label className="filter-label">SEX</label>
+          <select className="filter-select" value={filters.gender} onChange={(e) => handleChange('gender', e.target.value)}>
+            <option value="All">All</option>
+            {genders.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
         </div>
+
+        <div className="filter-field">
+          <label className="filter-label">AGE BAND</label>
+          <select className="filter-select" value={filters.ageGroup} onChange={(e) => handleChange('ageGroup', e.target.value)}>
+            <option value="All">All</option>
+            {ageGroups.map(ag => (
+              <option key={ag} value={ag}>{ag}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-field wide">
+          <label className="filter-label">SEARCH NAME/ADDRESS</label>
+          <input
+            type="text"
+            className="filter-input"
+            placeholder="Type to search..."
+            value={filters.search}
+            onChange={(e) => handleChange('search', e.target.value)}
+          />
+        </div>
+
+        <button className="btn-clear" onClick={onReset}>
+          Clear filters
+        </button>
       </div>
     </div>
   );

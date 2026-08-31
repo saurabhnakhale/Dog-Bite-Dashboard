@@ -11,20 +11,21 @@ export function parseAge(ageStr) {
 
 export function getAgeGroup(age) {
   if (age === null || age === undefined || isNaN(age)) return 'Unknown';
-  if (age <= 5) return '0-5 (Toddler)';
-  if (age <= 12) return '6-12 (Child)';
-  if (age <= 18) return '13-18 (Teen)';
-  if (age <= 35) return '19-35 (Young Adult)';
-  if (age <= 60) return '36-60 (Adult)';
-  return '60+ (Senior)';
+  if (age <= 5) return '0-5';
+  if (age <= 12) return '6-12';
+  if (age <= 18) return '13-18';
+  if (age <= 35) return '19-35';
+  if (age <= 60) return '36-60';
+  return '60+';
 }
 
 export function getSeason(month) {
   if (!month) return 'Unknown';
   const m = month.trim();
-  if (['March', 'April', 'May', 'June'].includes(m)) return 'Summer (Mar-Jun)';
-  if (['July', 'August', 'September', 'October'].includes(m)) return 'Monsoon (Jul-Oct)';
-  if (['November', 'December', 'January', 'February'].includes(m)) return 'Winter (Nov-Feb)';
+  if (['December', 'January', 'February'].includes(m)) return 'Winter (Dec-Feb)';
+  if (['March', 'April', 'May'].includes(m)) return 'Summer (Mar-May)';
+  if (['June', 'July', 'August', 'September'].includes(m)) return 'Monsoon (Jun-Sep)';
+  if (['October', 'November'].includes(m)) return 'Post-Monsoon (Oct-Nov)';
   return 'Unknown';
 }
 

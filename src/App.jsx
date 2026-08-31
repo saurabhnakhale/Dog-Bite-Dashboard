@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Header from './components/Header';
 import FilterBar from './components/FilterBar';
-import Scorecards from './components/Scorecards';
-import TrendsChart from './components/TrendsChart';
-import DemographicsChart from './components/DemographicsChart';
-import FacilitiesChart from './components/FacilitiesChart';
-import ZonesWardsView from './components/ZonesWardsView';
-import DeepTrendsAnalysis from './components/DeepTrendsAnalysis';
+import MonthlyTrendChart from './components/MonthlyTrendChart';
+import SeasonalDistChart from './components/SeasonalDistChart';
+import AgeBySexChart from './components/AgeBySexChart';
+import SexDistChart from './components/SexDistChart';
+import TopWardsChart from './components/TopWardsChart';
+import ZoneSeasonHeatmap from './components/ZoneSeasonHeatmap';
 import PatientTable from './components/PatientTable';
 import { fetchDogBiteData } from './services/dataService';
 import Papa from 'papaparse';
+import { Download, RefreshCw } from 'lucide-react';
 
 export default function App() {
   const [allData, setAllData] = useState([]);
@@ -19,12 +19,12 @@ export default function App() {
 
   const [filters, setFilters] = useState({
     year: 'All',
-    month: 'All',
     season: 'All',
+    month: 'All',
+    zone: 'All',
+    ward: 'All',
     gender: 'All',
     ageGroup: 'All',
-    zone: 'All',
-    facility: 'All',
     search: '',
   });
 
@@ -37,7 +37,7 @@ export default function App() {
       setDataMeta({ source: res.source, totalCount: res.totalCount });
     } catch (err) {
       console.error('Failed to load dataset:', err);
-      setError(err.message || 'Failed to load dog bite dataset');
+      setError(err.message || 'Failed to load dataset');
     } finally {
       setIsLoading(false);
     }
@@ -51,12 +51,12 @@ export default function App() {
   const filteredData = useMemo(() => {
     return allData.filter(item => {
       if (filters.year !== 'All' && item.year !== filters.year) return false;
-      if (filters.month !== 'All' && item.month !== filters.month) return false;
       if (filters.season !== 'All' && item.season !== filters.season) return false;
+      if (filters.month !== 'All' && item.month !== filters.month) return false;
+      if (filters.zone !== 'All' && item.zoneName !== filters.zone) return false;
+      if (filters.ward !== 'All' && item.wardNo !== filters.ward) return false;
       if (filters.gender !== 'All' && item.gender !== filters.gender) return false;
       if (filters.ageGroup !== 'All' && item.ageGroup !== filters.ageGroup) return false;
-      if (filters.zone !== 'All' && item.zoneName !== filters.zone) return false;
-      if (filters.facility !== 'All' && item.facilityName !== filters.facility) return false;
 
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -74,24 +74,28 @@ export default function App() {
     });
   }, [allData, filters]);
 
-  // Derived unique values for filter dropdowns
+  // Derived filter options
   const filterOptions = useMemo(() => {
     const yearsMap = {};
     const monthsSet = new Set();
-    const seasonsMap = {};
+    const seasonsSet = new Set([
+      'Winter (Dec-Feb)',
+      'Summer (Mar-May)',
+      'Monsoon (Jun-Sep)',
+      'Post-Monsoon (Oct-Nov)'
+    ]);
     const gendersSet = new Set();
     const ageGroupsSet = new Set();
     const zonesMap = {};
-    const facilitiesMap = {};
+    const wardsMap = {};
 
     allData.forEach(r => {
       yearsMap[r.year] = (yearsMap[r.year] || 0) + 1;
       if (r.month && r.month !== 'Unknown') monthsSet.add(r.month);
-      if (r.season) seasonsMap[r.season] = (seasonsMap[r.season] || 0) + 1;
       if (r.gender) gendersSet.add(r.gender);
-      if (r.ageGroup) ageGroupsSet.add(r.ageGroup);
+      if (r.ageGroup && r.ageGroup !== 'Unknown') ageGroupsSet.add(r.ageGroup);
       if (r.zoneName) zonesMap[r.zoneName] = (zonesMap[r.zoneName] || 0) + 1;
-      if (r.facilityName) facilitiesMap[r.facilityName] = (facilitiesMap[r.facilityName] || 0) + 1;
+      if (r.wardNo) wardsMap[r.wardNo] = (wardsMap[r.wardNo] || 0) + 1;
     });
 
     const monthsOrder = [
@@ -105,134 +109,71 @@ export default function App() {
       .sort((a, b) => b.localeCompare(a))
       .map(y => ({ name: y, count: yearsMap[y] }));
 
-    const seasons = Object.keys(seasonsMap)
-      .map(s => ({ name: s, count: seasonsMap[s] }));
-
     const zones = Object.keys(zonesMap)
       .map(z => ({ name: z, count: zonesMap[z] }))
       .sort((a, b) => b.count - a.count);
 
-    const facilities = Object.keys(facilitiesMap)
-      .map(f => ({ name: f, count: facilitiesMap[f] }))
+    const wards = Object.keys(wardsMap)
+      .map(w => ({ name: w, count: wardsMap[w] }))
+      .filter(w => w.name !== 'Unspecified Ward')
       .sort((a, b) => b.count - a.count);
+
+    const ageGroupOrder = ['0-5', '6-12', '13-18', '19-35', '36-60', '60+'];
+    const sortedAgeGroups = Array.from(ageGroupsSet).sort((a, b) => ageGroupOrder.indexOf(a) - ageGroupOrder.indexOf(b));
 
     return {
       years,
       months: sortedMonths,
-      seasons,
+      seasons: Array.from(seasonsSet),
       genders: Array.from(gendersSet),
-      ageGroups: Array.from(ageGroupsSet),
+      ageGroups: sortedAgeGroups,
       zones,
-      facilities,
+      wards,
     };
   }, [allData]);
 
-  // Comprehensive analytics calculations
+  // Visual Analytics calculations
   const stats = useMemo(() => {
     const total = filteredData.length;
-
-    let maleCount = 0;
-    let femaleCount = 0;
-    let sumAge = 0;
-    let ageCount = 0;
-
-    const ageGroupCounts = {};
-    const genderCounts = {};
-    const facilityCounts = {};
-    const zoneCounts = {};
-    const wardCounts = {};
+    const monthlyCounts = {};
     const seasonCounts = {};
+    const genderCounts = {};
     const ageSexData = { male: {}, female: {} };
-    const monthlyTrends = { '2024': {}, '2025': {}, '2026': {} };
+    const wardCounts = {};
+    const zoneSeasonMatrix = {};
 
     filteredData.forEach(r => {
-      if (r.gender === 'Male') maleCount++;
-      else if (r.gender === 'Female') femaleCount++;
-
-      genderCounts[r.gender] = (genderCounts[r.gender] || 0) + 1;
-
-      if (r.ageNum !== null) {
-        sumAge += r.ageNum;
-        ageCount++;
-      }
-
-      ageGroupCounts[r.ageGroup] = (ageGroupCounts[r.ageGroup] || 0) + 1;
-      facilityCounts[r.facilityName] = (facilityCounts[r.facilityName] || 0) + 1;
-      zoneCounts[r.zoneName] = (zoneCounts[r.zoneName] || 0) + 1;
-      wardCounts[r.wardNo] = (wardCounts[r.wardNo] || 0) + 1;
+      monthlyCounts[r.month] = (monthlyCounts[r.month] || 0) + 1;
       seasonCounts[r.season] = (seasonCounts[r.season] || 0) + 1;
+      genderCounts[r.gender] = (genderCounts[r.gender] || 0) + 1;
+      wardCounts[r.wardNo] = (wardCounts[r.wardNo] || 0) + 1;
 
-      // Age x Sex breakdown
-      const shortAgeGrp = r.ageGroup.replace(/ \(.+\)/, '');
+      // Age x Sex
       if (r.gender === 'Male') {
-        ageSexData.male[shortAgeGrp] = (ageSexData.male[shortAgeGrp] || 0) + 1;
+        ageSexData.male[r.ageGroup] = (ageSexData.male[r.ageGroup] || 0) + 1;
       } else if (r.gender === 'Female') {
-        ageSexData.female[shortAgeGrp] = (ageSexData.female[shortAgeGrp] || 0) + 1;
+        ageSexData.female[r.ageGroup] = (ageSexData.female[r.ageGroup] || 0) + 1;
       }
 
-      if (monthlyTrends[r.year]) {
-        monthlyTrends[r.year][r.month] = (monthlyTrends[r.year][r.month] || 0) + 1;
-      }
-    });
-
-    const malePct = total > 0 ? ((maleCount / total) * 100).toFixed(1) : 0;
-    const femalePct = total > 0 ? ((femaleCount / total) * 100).toFixed(1) : 0;
-    const avgAge = ageCount > 0 ? (sumAge / ageCount).toFixed(1) : 'N/A';
-
-    // Top Age Bracket
-    let topAgeBracket = 'N/A';
-    let topAgeCount = 0;
-    Object.entries(ageGroupCounts).forEach(([grp, count]) => {
-      if (count > topAgeCount && grp !== 'Unknown') {
-        topAgeCount = count;
-        topAgeBracket = grp;
+      // Zone x Season Matrix
+      if (r.zoneName) {
+        if (!zoneSeasonMatrix[r.zoneName]) zoneSeasonMatrix[r.zoneName] = {};
+        zoneSeasonMatrix[r.zoneName][r.season] = (zoneSeasonMatrix[r.zoneName][r.season] || 0) + 1;
       }
     });
-
-    // Top Facility
-    let topFacilityName = 'None';
-    let topFacilityCount = 0;
-    Object.entries(facilityCounts).forEach(([fac, count]) => {
-      if (count > topFacilityCount) {
-        topFacilityCount = count;
-        topFacilityName = fac;
-      }
-    });
-    const topFacilityPct = total > 0 ? ((topFacilityCount / total) * 100).toFixed(1) : 0;
-
-    const topFacilities = Object.keys(facilityCounts)
-      .map(f => ({ name: f, count: facilityCounts[f] }))
-      .sort((a, b) => b.count - a.count);
-
-    const topZones = Object.keys(zoneCounts)
-      .map(z => ({ name: z, count: zoneCounts[z] }))
-      .sort((a, b) => b.count - a.count);
 
     const topWards = Object.keys(wardCounts)
       .map(w => ({ name: w, count: wardCounts[w] }))
-      .filter(w => w.name !== 'Unspecified Ward')
       .sort((a, b) => b.count - a.count);
 
     return {
-      filteredCount: total,
-      maleCount,
-      femaleCount,
-      malePct,
-      femalePct,
-      avgAge,
-      topAgeBracket,
-      topAgeCount,
-      topFacilityName,
-      topFacilityCount,
-      topFacilityPct,
-      genderCounts,
-      ageGroupCounts,
+      total,
+      monthlyCounts,
       seasonCounts,
+      genderCounts,
       ageSexData,
-      monthlyTrends,
-      topFacilities,
-      topZones,
       topWards,
+      zoneSeasonMatrix,
     };
   }, [filteredData]);
 
@@ -260,7 +201,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `nagpur_dog_bites_trends_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `dog_bites_export_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -269,22 +210,21 @@ export default function App() {
   const handleResetFilters = () => {
     setFilters({
       year: 'All',
-      month: 'All',
       season: 'All',
+      month: 'All',
+      zone: 'All',
+      ward: 'All',
       gender: 'All',
       ageGroup: 'All',
-      zone: 'All',
-      facility: 'All',
       search: '',
     });
   };
 
   if (isLoading) {
     return (
-      <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-        <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '4px solid rgba(99, 102, 241, 0.2)', borderTopColor: '#6366f1', animation: 'spin 1s linear infinite' }} />
-        <h2 style={{ marginTop: '1.5rem', color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>Loading Dog Bite Incident Dataset...</h2>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Fetching 18,200+ registry records from Google Sheets...</p>
+      <div className="dashboard-container" style={{ textAlign: 'center', paddingTop: '5rem' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e5e0d8', borderTopColor: '#6366f1', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+        <h3 style={{ marginTop: '1.25rem', color: 'var(--text-main)' }}>Loading Dog Bite Incident Analytics...</h3>
         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -293,10 +233,10 @@ export default function App() {
   if (error) {
     return (
       <div className="dashboard-container" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-        <div className="glass-card" style={{ padding: '3rem', maxWidth: '500px', margin: '0 auto' }}>
-          <h2 style={{ color: '#f43f5e' }}>Unable to load dataset</h2>
+        <div className="viz-card" style={{ maxWidth: '480px', margin: '0 auto' }}>
+          <h3 style={{ color: '#ef4444' }}>Error Loading Data</h3>
           <p style={{ color: 'var(--text-muted)', margin: '1rem 0' }}>{error}</p>
-          <button className="btn-primary" onClick={loadData} style={{ margin: '0 auto' }}>Retry Loading</button>
+          <button className="btn-clear" onClick={loadData}>Retry</button>
         </div>
       </div>
     );
@@ -304,15 +244,26 @@ export default function App() {
 
   return (
     <div className="dashboard-container">
-      <Header
-        source={dataMeta.source}
-        onRefresh={loadData}
-        onExport={handleExportCSV}
-        totalRecords={dataMeta.totalCount}
-        filteredCount={filteredData.length}
-        isLoading={isLoading}
-      />
+      {/* Top Header bar with status and export */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-main)' }}>Nagpur Dog Bite Incident Analytics</h2>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Showing <strong>{filteredData.length.toLocaleString()}</strong> of {dataMeta.totalCount.toLocaleString()} recorded incident cases ({dataMeta.source})
+          </span>
+        </div>
 
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn-clear" onClick={loadData} title="Refresh Live Google Sheets Data">
+            <RefreshCw size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Refresh
+          </button>
+          <button className="btn-clear" onClick={handleExportCSV} style={{ background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' }}>
+            <Download size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Export CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
       <FilterBar
         filters={filters}
         setFilters={setFilters}
@@ -322,26 +273,37 @@ export default function App() {
         genders={filterOptions.genders}
         ageGroups={filterOptions.ageGroups}
         zones={filterOptions.zones}
-        facilities={filterOptions.facilities}
+        wards={filterOptions.wards}
         onReset={handleResetFilters}
       />
 
-      <Scorecards stats={stats} totalDatasetCount={dataMeta.totalCount} />
-
-      <DeepTrendsAnalysis
-        data={filteredData}
-        seasonCounts={stats.seasonCounts}
-        ageSexData={stats.ageSexData}
-        wardTrendData={stats.topWards}
-      />
-
-      <div className="charts-grid">
-        <TrendsChart monthlyTrends={stats.monthlyTrends} />
-        <DemographicsChart genderData={stats.genderCounts} ageGroupData={stats.ageGroupCounts} />
-        <FacilitiesChart topFacilities={stats.topFacilities} totalCount={stats.filteredCount} />
-        <ZonesWardsView topZones={stats.topZones} topWards={stats.topWards} totalCount={stats.filteredCount} />
+      {/* Grid 1: Top 4 Visualizations (Screenshot 1) */}
+      <div className="grid-2col">
+        <MonthlyTrendChart
+          monthlyCounts={stats.monthlyCounts}
+          onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
+        />
+        <SeasonalDistChart
+          seasonCounts={stats.seasonCounts}
+          totalCount={stats.total}
+        />
       </div>
 
+      <div className="grid-2col">
+        <AgeBySexChart ageSexData={stats.ageSexData} />
+        <SexDistChart genderCounts={stats.genderCounts} totalCount={stats.total} />
+      </div>
+
+      {/* Grid 2: Wards & Zone x Season Heatmap (Screenshot 2) */}
+      <div className="grid-2col">
+        <TopWardsChart wardsData={stats.topWards} />
+        <ZoneSeasonHeatmap
+          zoneSeasonMatrix={stats.zoneSeasonMatrix}
+          zonesList={filterOptions.zones}
+        />
+      </div>
+
+      {/* Patient Records Explorer Table */}
       <PatientTable data={filteredData} />
     </div>
   );
