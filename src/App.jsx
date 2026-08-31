@@ -143,7 +143,6 @@ export default function App() {
     const genderCounts = {};
     const ageSexData = { male: {}, female: {} };
     const wardCounts = {};
-    const weeklyCounts = {};
     const yearlyTrends = { '2024': {}, '2025': {}, '2026': {} };
     const zoneSeasonMatrix = {};
 
@@ -152,10 +151,6 @@ export default function App() {
       seasonCounts[r.season] = (seasonCounts[r.season] || 0) + 1;
       genderCounts[r.gender] = (genderCounts[r.gender] || 0) + 1;
       wardCounts[r.wardNo] = (wardCounts[r.wardNo] || 0) + 1;
-
-      if (r.weekOfMonth && r.weekOfMonth !== 'Unknown') {
-        weeklyCounts[r.weekOfMonth] = (weeklyCounts[r.weekOfMonth] || 0) + 1;
-      }
 
       if (yearlyTrends[r.year]) {
         yearlyTrends[r.year][r.month] = (yearlyTrends[r.year][r.month] || 0) + 1;
@@ -186,7 +181,6 @@ export default function App() {
       genderCounts,
       ageSexData,
       topWards,
-      weeklyCounts,
       yearlyTrends,
       zoneSeasonMatrix,
     };
@@ -199,7 +193,6 @@ export default function App() {
       Year: r.year,
       Month: r.month,
       Season: r.season,
-      Week: r.weekOfMonth,
       'Patient Name': r.patientName,
       'Contact Number': r.contact,
       Gender: r.gender,
@@ -308,7 +301,7 @@ export default function App() {
           style={activeTab === 'monthly' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
           onClick={() => setActiveTab('monthly')}
         >
-          <Calendar size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Line Trend (Year/Month/Week)
+          <Calendar size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Line Trend (Monthly & Yearly)
         </button>
 
         <button
@@ -359,7 +352,6 @@ export default function App() {
             <MonthlyTrendChart
               monthlyCounts={stats.monthlyCounts}
               yearlyTrends={stats.yearlyTrends}
-              weeklyCounts={stats.weeklyCounts}
               onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
             />
             <SeasonalDistChart
@@ -383,13 +375,12 @@ export default function App() {
         </>
       )}
 
-      {/* Separate View 1: Line Trend */}
+      {/* Separate View 1: Line Trend (Monthly & Yearly) */}
       {activeTab === 'monthly' && (
         <div style={{ marginBottom: '1.5rem' }}>
           <MonthlyTrendChart
             monthlyCounts={stats.monthlyCounts}
             yearlyTrends={stats.yearlyTrends}
-            weeklyCounts={stats.weeklyCounts}
             onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
           />
         </div>
