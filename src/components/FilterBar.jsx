@@ -1,11 +1,12 @@
 import React from 'react';
-import { Filter, Search, RotateCcw } from 'lucide-react';
+import { Search, RotateCcw } from 'lucide-react';
 
 export default function FilterBar({
   filters,
   setFilters,
   years,
   months,
+  seasons,
   genders,
   ageGroups,
   zones,
@@ -35,11 +36,21 @@ export default function FilterBar({
         </div>
 
         <div className="filter-group">
+          <label>Season</label>
+          <select className="select-input" value={filters.season} onChange={(e) => handleChange('season', e.target.value)}>
+            <option value="All">All Seasons</option>
+            {seasons.map(s => (
+              <option key={s.name} value={s.name}>{s.name} ({s.count.toLocaleString()})</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
           <label>Year</label>
           <select className="select-input" value={filters.year} onChange={(e) => handleChange('year', e.target.value)}>
-            <option value="All">All Years ({years.reduce((a, b) => a + b.count, 0)})</option>
+            <option value="All">All Years</option>
             {years.map(y => (
-              <option key={y.name} value={y.name}>{y.name} ({y.count})</option>
+              <option key={y.name} value={y.name}>{y.name} ({y.count.toLocaleString()})</option>
             ))}
           </select>
         </div>
@@ -55,9 +66,9 @@ export default function FilterBar({
         </div>
 
         <div className="filter-group">
-          <label>Gender</label>
+          <label>Sex / Gender</label>
           <select className="select-input" value={filters.gender} onChange={(e) => handleChange('gender', e.target.value)}>
-            <option value="All">All Genders</option>
+            <option value="All">All Sexes</option>
             {genders.map(g => (
               <option key={g} value={g}>{g}</option>
             ))}
@@ -65,9 +76,9 @@ export default function FilterBar({
         </div>
 
         <div className="filter-group">
-          <label>Age Group</label>
+          <label>Age Bracket</label>
           <select className="select-input" value={filters.ageGroup} onChange={(e) => handleChange('ageGroup', e.target.value)}>
-            <option value="All">All Age Brackets</option>
+            <option value="All">All Age Groups</option>
             {ageGroups.map(ag => (
               <option key={ag} value={ag}>{ag}</option>
             ))}
@@ -79,7 +90,7 @@ export default function FilterBar({
           <select className="select-input" value={filters.zone} onChange={(e) => handleChange('zone', e.target.value)}>
             <option value="All">All Zones</option>
             {zones.map(z => (
-              <option key={z.name} value={z.name}>{z.name} ({z.count})</option>
+              <option key={z.name} value={z.name}>{z.name}</option>
             ))}
           </select>
         </div>
@@ -89,7 +100,7 @@ export default function FilterBar({
           <select className="select-input" value={filters.facility} onChange={(e) => handleChange('facility', e.target.value)}>
             <option value="All">All Facilities</option>
             {facilities.slice(0, 15).map(f => (
-              <option key={f.name} value={f.name}>{f.name.length > 25 ? f.name.substring(0, 25) + '...' : f.name}</option>
+              <option key={f.name} value={f.name}>{f.name.length > 22 ? f.name.substring(0, 22) + '...' : f.name}</option>
             ))}
           </select>
         </div>

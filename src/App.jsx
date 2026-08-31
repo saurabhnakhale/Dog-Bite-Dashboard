@@ -6,6 +6,7 @@ import TrendsChart from './components/TrendsChart';
 import DemographicsChart from './components/DemographicsChart';
 import FacilitiesChart from './components/FacilitiesChart';
 import ZonesWardsView from './components/ZonesWardsView';
+import DeepTrendsAnalysis from './components/DeepTrendsAnalysis';
 import PatientTable from './components/PatientTable';
 import { fetchDogBiteData } from './services/dataService';
 import Papa from 'papaparse';
@@ -19,6 +20,7 @@ export default function App() {
   const [filters, setFilters] = useState({
     year: 'All',
     month: 'All',
+    season: 'All',
     gender: 'All',
     ageGroup: 'All',
     zone: 'All',
@@ -50,6 +52,7 @@ export default function App() {
     return allData.filter(item => {
       if (filters.year !== 'All' && item.year !== filters.year) return false;
       if (filters.month !== 'All' && item.month !== filters.month) return false;
+      if (filters.season !== 'All' && item.season !== filters.season) return false;
       if (filters.gender !== 'All' && item.gender !== filters.gender) return false;
       if (filters.ageGroup !== 'All' && item.ageGroup !== filters.ageGroup) return false;
       if (filters.zone !== 'All' && item.zoneName !== filters.zone) return false;
@@ -75,6 +78,7 @@ export default function App() {
   const filterOptions = useMemo(() => {
     const yearsMap = {};
     const monthsSet = new Set();
+    const seasonsMap = {};
     const gendersSet = new Set();
     const ageGroupsSet = new Set();
     const zonesMap = {};
@@ -83,6 +87,7 @@ export default function App() {
     allData.forEach(r => {
       yearsMap[r.year] = (yearsMap[r.year] || 0) + 1;
       if (r.month && r.month !== 'Unknown') monthsSet.add(r.month);
+      if (r.season) seasonsMap[r.season] = (seasonsMap[r.season] || 0) + 1;
       if (r.gender) gendersSet.add(r.gender);
       if (r.ageGroup) ageGroupsSet.add(r.ageGroup);
       if (r.zoneName) zonesMap[r.zoneName] = (zonesMap[r.zoneName] || 0) + 1;
@@ -100,6 +105,9 @@ export default function App() {
       .sort((a, b) => b.localeCompare(a))
       .map(y => ({ name: y, count: yearsMap[y] }));
 
+    const seasons = Object.keys(seasonsMap)
+      .map(s => ({ name: s, count: seasonsMap[s] }));
+
     const zones = Object.keys(zonesMap)
       .map(z => ({ name: z, count: zonesMap[z] }))
       .sort((a, b) => b.count - a.count);
@@ -111,6 +119,7 @@ export default function App() {
     return {
       years,
       months: sortedMonths,
+      seasons,
       genders: Array.from(gendersSet),
       ageGroups: Array.from(ageGroupsSet),
       zones,
@@ -132,6 +141,8 @@ export default function App() {
     const facilityCounts = {};
     const zoneCounts = {};
     const wardCounts = {};
+    const seasonCounts = {};
+    const ageSexData = { male: {}, female: {} };
     const monthlyTrends = { '2024': {}, '2025': {}, '2026': {} };
 
     filteredData.forEach(r => {
@@ -149,6 +160,15 @@ export default function App() {
       facilityCounts[r.facilityName] = (facilityCounts[r.facilityName] || 0) + 1;
       zoneCounts[r.zoneName] = (zoneCounts[r.zoneName] || 0) + 1;
       wardCounts[r.wardNo] = (wardCounts[r.wardNo] || 0) + 1;
+      seasonCounts[r.season] = (seasonCounts[r.season] || 0) + 1;
+
+      // Age x Sex breakdown
+      const shortAgeGrp = r.ageGroup.replace(/ \(.+\)/, '');
+      if (r.gender === 'Male') {
+        ageSexData.male[shortAgeGrp] = (ageSexData.male[shortAgeGrp] || 0) + 1;
+      } else if (r.gender === 'Female') {
+        ageSexData.female[shortAgeGrp] = (ageSexData.female[shortAgeGrp] || 0) + 1;
+      }
 
       if (monthlyTrends[r.year]) {
         monthlyTrends[r.year][r.month] = (monthlyTrends[r.year][r.month] || 0) + 1;
@@ -180,7 +200,6 @@ export default function App() {
     });
     const topFacilityPct = total > 0 ? ((topFacilityCount / total) * 100).toFixed(1) : 0;
 
-    // Ranked list of facilities, zones, wards
     const topFacilities = Object.keys(facilityCounts)
       .map(f => ({ name: f, count: facilityCounts[f] }))
       .sort((a, b) => b.count - a.count);
@@ -191,6 +210,7 @@ export default function App() {
 
     const topWards = Object.keys(wardCounts)
       .map(w => ({ name: w, count: wardCounts[w] }))
+      .filter(w => w.name !== 'Unspecified Ward')
       .sort((a, b) => b.count - a.count);
 
     return {
@@ -207,6 +227,8 @@ export default function App() {
       topFacilityPct,
       genderCounts,
       ageGroupCounts,
+      seasonCounts,
+      ageSexData,
       monthlyTrends,
       topFacilities,
       topZones,
@@ -220,6 +242,7 @@ export default function App() {
     const exportRows = filteredData.map(r => ({
       Year: r.year,
       Month: r.month,
+      Season: r.season,
       'Patient Name': r.patientName,
       'Contact Number': r.contact,
       Gender: r.gender,
@@ -237,7 +260,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `nagpur_dog_bites_filtered_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `nagpur_dog_bites_trends_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -247,6 +270,7 @@ export default function App() {
     setFilters({
       year: 'All',
       month: 'All',
+      season: 'All',
       gender: 'All',
       ageGroup: 'All',
       zone: 'All',
@@ -294,6 +318,7 @@ export default function App() {
         setFilters={setFilters}
         years={filterOptions.years}
         months={filterOptions.months}
+        seasons={filterOptions.seasons}
         genders={filterOptions.genders}
         ageGroups={filterOptions.ageGroups}
         zones={filterOptions.zones}
@@ -302,6 +327,13 @@ export default function App() {
       />
 
       <Scorecards stats={stats} totalDatasetCount={dataMeta.totalCount} />
+
+      <DeepTrendsAnalysis
+        data={filteredData}
+        seasonCounts={stats.seasonCounts}
+        ageSexData={stats.ageSexData}
+        wardTrendData={stats.topWards}
+      />
 
       <div className="charts-grid">
         <TrendsChart monthlyTrends={stats.monthlyTrends} />

@@ -19,6 +19,15 @@ export function getAgeGroup(age) {
   return '60+ (Senior)';
 }
 
+export function getSeason(month) {
+  if (!month) return 'Unknown';
+  const m = month.trim();
+  if (['March', 'April', 'May', 'June'].includes(m)) return 'Summer (Mar-Jun)';
+  if (['July', 'August', 'September', 'October'].includes(m)) return 'Monsoon (Jul-Oct)';
+  if (['November', 'December', 'January', 'February'].includes(m)) return 'Winter (Nov-Feb)';
+  return 'Unknown';
+}
+
 export async function fetchDogBiteData() {
   let csvText = '';
   let source = 'Live Google Sheets';
@@ -27,7 +36,6 @@ export async function fetchDogBiteData() {
     const response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-cache' });
     if (response.ok) {
       csvText = await response.text();
-      // Check if text starts with header or valid HTML redirect
       if (!csvText.includes('Year,Month')) {
         throw new Error('Invalid CSV structure from live endpoint');
       }
@@ -48,10 +56,12 @@ export async function fetchDogBiteData() {
       complete: (results) => {
         const cleanedRows = results.data.map((row, index) => {
           const ageNum = parseAge(row['Age']);
+          const month = (row['Month'] || 'Unknown').trim();
           return {
             id: index + 1,
             year: (row['Year'] || 'Unknown').trim(),
-            month: (row['Month'] || 'Unknown').trim(),
+            month,
+            season: getSeason(month),
             patientName: (row['Patient Name'] || 'Unknown').trim(),
             contact: (row['Contact Number'] || '').trim(),
             gender: (row['Gender'] || 'Unknown').trim(),
