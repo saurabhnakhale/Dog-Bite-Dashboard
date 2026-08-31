@@ -29,6 +29,33 @@ export function getSeason(month) {
   return 'Unknown';
 }
 
+export function parseWeek(dateStr) {
+  if (!dateStr) return { day: null, weekOfMonth: 'Unknown', isoWeek: null };
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      let weekOfMonth = 'Week 1 (1-7)';
+      if (day > 28) weekOfMonth = 'Week 5 (29-31)';
+      else if (day > 21) weekOfMonth = 'Week 4 (22-28)';
+      else if (day > 14) weekOfMonth = 'Week 3 (15-21)';
+      else if (day > 7) weekOfMonth = 'Week 2 (8-14)';
+
+      // Calculate approximate ISO week
+      const dateObj = new Date(year, month - 1, day);
+      const startOfYear = new Date(year, 0, 1);
+      const pastDaysOfYear = (dateObj - startOfYear) / 86400000;
+      const isoWeek = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+
+      return { day, weekOfMonth, isoWeek: `W${isoWeek}` };
+    }
+  }
+  return { day: null, weekOfMonth: 'Unknown', isoWeek: null };
+}
+
 export async function fetchDogBiteData() {
   let csvText = '';
   let source = 'Live Google Sheets';
@@ -58,11 +85,16 @@ export async function fetchDogBiteData() {
         const cleanedRows = results.data.map((row, index) => {
           const ageNum = parseAge(row['Age']);
           const month = (row['Month'] || 'Unknown').trim();
+          const dateOfOnset = (row['Date Of Onset'] || '').trim();
+          const weekInfo = parseWeek(dateOfOnset);
+
           return {
             id: index + 1,
             year: (row['Year'] || 'Unknown').trim(),
             month,
             season: getSeason(month),
+            weekOfMonth: weekInfo.weekOfMonth,
+            isoWeek: weekInfo.isoWeek,
             patientName: (row['Patient Name'] || 'Unknown').trim(),
             contact: (row['Contact Number'] || '').trim(),
             gender: (row['Gender'] || 'Unknown').trim(),
@@ -71,7 +103,7 @@ export async function fetchDogBiteData() {
             ageGroup: getAgeGroup(ageNum),
             address: (row['Patient Address'] || '').trim(),
             area: (row['Area'] || '').trim(),
-            dateOfOnset: (row['Date Of Onset'] || '').trim(),
+            dateOfOnset,
             facilityName: (row['Facility Name'] || 'Unspecified Facility').trim(),
             zoneName: (row['Zone Name'] || 'Unspecified Zone').trim(),
             wardNo: (row['Ward No.'] || 'Unspecified Ward').trim(),
