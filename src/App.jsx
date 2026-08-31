@@ -9,13 +9,16 @@ import ZoneSeasonHeatmap from './components/ZoneSeasonHeatmap';
 import PatientTable from './components/PatientTable';
 import { fetchDogBiteData } from './services/dataService';
 import Papa from 'papaparse';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, LayoutGrid, Calendar, Sun, Users, PieChart, MapPin, Grid } from 'lucide-react';
 
 export default function App() {
   const [allData, setAllData] = useState([]);
   const [dataMeta, setDataMeta] = useState({ source: 'Loading...', totalCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Active view tab state: 'all' | 'monthly' | 'seasonal' | 'agesex' | 'sex' | 'wards' | 'heatmap'
+  const [activeTab, setActiveTab] = useState('all');
 
   const [filters, setFilters] = useState({
     year: 'All',
@@ -277,31 +280,144 @@ export default function App() {
         onReset={handleResetFilters}
       />
 
-      {/* Grid 1: Top 4 Visualizations (Screenshot 1) */}
-      <div className="grid-2col">
-        <MonthlyTrendChart
-          monthlyCounts={stats.monthlyCounts}
-          onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
-        />
-        <SeasonalDistChart
-          seasonCounts={stats.seasonCounts}
-          totalCount={stats.total}
-        />
+      {/* Visualization Tab Navigation Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+        <button
+          className={activeTab === 'all' ? 'btn-clear' : 'btn-clear'}
+          style={activeTab === 'all' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('all')}
+        >
+          <LayoutGrid size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> All Visualizations
+        </button>
+
+        <button
+          className="btn-clear"
+          style={activeTab === 'monthly' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('monthly')}
+        >
+          <Calendar size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Monthly Trend
+        </button>
+
+        <button
+          className="btn-clear"
+          style={activeTab === 'seasonal' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('seasonal')}
+        >
+          <Sun size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Seasonal Distribution
+        </button>
+
+        <button
+          className="btn-clear"
+          style={activeTab === 'agesex' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('agesex')}
+        >
+          <Users size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Age Distribution by Sex
+        </button>
+
+        <button
+          className="btn-clear"
+          style={activeTab === 'sex' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('sex')}
+        >
+          <PieChart size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Sex Distribution
+        </button>
+
+        <button
+          className="btn-clear"
+          style={activeTab === 'wards' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('wards')}
+        >
+          <MapPin size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Top Wards
+        </button>
+
+        <button
+          className="btn-clear"
+          style={activeTab === 'heatmap' ? { background: '#1c1917', color: '#ffffff', borderColor: '#1c1917' } : {}}
+          onClick={() => setActiveTab('heatmap')}
+        >
+          <Grid size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Zone x Season Heatmap
+        </button>
       </div>
 
-      <div className="grid-2col">
-        <AgeBySexChart ageSexData={stats.ageSexData} />
-        <SexDistChart genderCounts={stats.genderCounts} totalCount={stats.total} />
-      </div>
+      {/* Render selected Visualization(s) */}
+      {activeTab === 'all' && (
+        <>
+          <div className="grid-2col">
+            <MonthlyTrendChart
+              monthlyCounts={stats.monthlyCounts}
+              onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
+            />
+            <SeasonalDistChart
+              seasonCounts={stats.seasonCounts}
+              totalCount={stats.total}
+            />
+          </div>
 
-      {/* Grid 2: Wards & Zone x Season Heatmap (Screenshot 2) */}
-      <div className="grid-2col">
-        <TopWardsChart wardsData={stats.topWards} />
-        <ZoneSeasonHeatmap
-          zoneSeasonMatrix={stats.zoneSeasonMatrix}
-          zonesList={filterOptions.zones}
-        />
-      </div>
+          <div className="grid-2col">
+            <AgeBySexChart ageSexData={stats.ageSexData} />
+            <SexDistChart genderCounts={stats.genderCounts} totalCount={stats.total} />
+          </div>
+
+          <div className="grid-2col">
+            <TopWardsChart wardsData={stats.topWards} />
+            <ZoneSeasonHeatmap
+              zoneSeasonMatrix={stats.zoneSeasonMatrix}
+              zonesList={filterOptions.zones}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Separate View 1: Monthly Trend */}
+      {activeTab === 'monthly' && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <MonthlyTrendChart
+            monthlyCounts={stats.monthlyCounts}
+            onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
+          />
+        </div>
+      )}
+
+      {/* Separate View 2: Seasonal Distribution */}
+      {activeTab === 'seasonal' && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <SeasonalDistChart
+            seasonCounts={stats.seasonCounts}
+            totalCount={stats.total}
+          />
+        </div>
+      )}
+
+      {/* Separate View 3: Age Distribution by Sex */}
+      {activeTab === 'agesex' && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AgeBySexChart ageSexData={stats.ageSexData} />
+        </div>
+      )}
+
+      {/* Separate View 4: Sex Distribution */}
+      {activeTab === 'sex' && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <SexDistChart genderCounts={stats.genderCounts} totalCount={stats.total} />
+        </div>
+      )}
+
+      {/* Separate View 5: Top Wards by Case Count */}
+      {activeTab === 'wards' && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <TopWardsChart wardsData={stats.topWards} />
+        </div>
+      )}
+
+      {/* Separate View 6: Zone x Season Heatmap */}
+      {activeTab === 'heatmap' && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <ZoneSeasonHeatmap
+            zoneSeasonMatrix={stats.zoneSeasonMatrix}
+            zonesList={filterOptions.zones}
+          />
+        </div>
+      )}
 
       {/* Patient Records Explorer Table */}
       <PatientTable data={filteredData} />
