@@ -233,7 +233,7 @@ export default function App() {
     return (
       <div className="dashboard-container" style={{ textAlign: 'center', paddingTop: '5rem' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e5e0d8', borderTopColor: '#6366f1', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
-        <h3 style={{ marginTop: '1.25rem', color: 'var(--text-main)' }}>Loading Dog Bite Incident Analytics...</h3>
+        <h3 style={{ marginTop: '1.25rem', color: 'var(--text-main)' }}>Loading Dog Bite Analysis Dashboard...</h3>
         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -253,16 +253,24 @@ export default function App() {
 
   return (
     <div className="dashboard-container">
-      {/* Top Header bar with status and export */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-main)' }}>Nagpur Dog Bite Incident Analytics</h2>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Showing <strong>{filteredData.length.toLocaleString()}</strong> of {dataMeta.totalCount.toLocaleString()} recorded incident cases ({dataMeta.source})
-          </span>
+      {/* Centered Title & Subtitle Header with Right-side Live Stream & Actions */}
+      <div className="header-container">
+        {/* Empty left flex balance spacer */}
+        <div style={{ flex: '1', display: 'none' }} className="desktop-spacer" />
+
+        {/* Center Title and Subtitle */}
+        <div className="header-center-title">
+          <h1>Dog Bite Analysis Dashboard</h1>
+          <p>As per NMC - IHIP Portal</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        {/* Right Side: Live Stream Blinking Dot Indicator + Refresh & Export Buttons */}
+        <div className="header-right-actions">
+          <div className="live-stream-badge">
+            <span className="blinking-dot" />
+            <span>Live Stream</span>
+          </div>
+
           <button className="btn-clear" onClick={loadData} title="Refresh Live Google Sheets Data">
             <RefreshCw size={14} style={{ display: 'inline', marginRight: '0.3rem' }} /> Refresh
           </button>
