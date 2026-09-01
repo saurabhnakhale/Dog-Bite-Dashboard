@@ -204,6 +204,7 @@ export default function App() {
       'Facility Name': r.facilityName,
       'Zone Name': r.zoneName,
       'Ward No.': r.wardNo,
+      'Death (NMC/Outside)': r.deathRaw || r.deathCategory,
     }));
 
     const csv = Papa.unparse(exportRows);
@@ -303,8 +304,8 @@ export default function App() {
         onReset={handleResetFilters}
       />
 
-      {/* Key Performance Indicators (KPI Cards) */}
-      <KpiCards stats={stats} totalRecords={dataMeta.totalCount} />
+      {/* Key Performance Indicators (KPI Cards) with NMC vs Outside Death breakdown */}
+      <KpiCards stats={stats} filteredData={filteredData} totalRecords={dataMeta.totalCount} />
 
       {/* 6 Visualizations Grid */}
       <div className="grid-2col">

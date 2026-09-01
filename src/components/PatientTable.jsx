@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Database, ChevronLeft, ChevronRight, X, User, Phone, MapPin, Hospital, Calendar, Tag } from 'lucide-react';
+import { Database, ChevronLeft, ChevronRight, X, User, Phone, MapPin, Hospital, Calendar, Tag, AlertTriangle } from 'lucide-react';
 
 export default function PatientTable({ data }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,18 +38,18 @@ export default function PatientTable({ data }) {
   }, [sortedData, currentPage, pageSize]);
 
   return (
-    <div className="glass-card table-card">
-      <div className="table-header-bar">
-        <div className="chart-title">
-          <Database size={20} style={{ color: '#818cf8' }} />
+    <div className="viz-card data-table-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className="viz-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Database size={18} style={{ color: '#6366f1' }} />
           <span>Patient Incident Registry Explorer ({data.length.toLocaleString()} Records)</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Rows per page:</span>
           <select
-            className="select-input"
-            style={{ width: 'auto', padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
+            className="filter-select"
+            style={{ width: 'auto', padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
             value={pageSize}
             onChange={(e) => {
               setPageSize(Number(e.target.value));
@@ -63,18 +63,19 @@ export default function PatientTable({ data }) {
         </div>
       </div>
 
-      <div className="table-wrapper">
+      <div style={{ overflowX: 'auto' }}>
         <table className="data-table">
           <thead>
             <tr>
-              <th onClick={() => handleSort('id')}>ID {sortField === 'id' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('dateOfOnset')}>Onset Date {sortField === 'dateOfOnset' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('patientName')}>Patient Name {sortField === 'patientName' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('ageNum')}>Age {sortField === 'ageNum' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('gender')}>Gender {sortField === 'gender' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('facilityName')}>Facility {sortField === 'facilityName' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('zoneName')}>Zone {sortField === 'zoneName' ? (sortAsc ? '↑' : '↓') : ''}</th>
-              <th onClick={() => handleSort('wardNo')}>Ward {sortField === 'wardNo' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>ID {sortField === 'id' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('dateOfOnset')} style={{ cursor: 'pointer' }}>Onset Date {sortField === 'dateOfOnset' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('patientName')} style={{ cursor: 'pointer' }}>Patient Name {sortField === 'patientName' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('ageNum')} style={{ cursor: 'pointer' }}>Age {sortField === 'ageNum' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('gender')} style={{ cursor: 'pointer' }}>Gender {sortField === 'gender' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('facilityName')} style={{ cursor: 'pointer' }}>Facility {sortField === 'facilityName' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('zoneName')} style={{ cursor: 'pointer' }}>Zone {sortField === 'zoneName' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('wardNo')} style={{ cursor: 'pointer' }}>Prabhag {sortField === 'wardNo' ? (sortAsc ? '↑' : '↓') : ''}</th>
+              <th onClick={() => handleSort('deathCategory')} style={{ cursor: 'pointer' }}>Death (NMC/Outside) {sortField === 'deathCategory' ? (sortAsc ? '↑' : '↓') : ''}</th>
             </tr>
           </thead>
           <tbody>
@@ -86,22 +87,42 @@ export default function PatientTable({ data }) {
                   <td style={{ fontWeight: '600', color: 'var(--text-main)' }}>{row.patientName}</td>
                   <td>{row.ageStr || (row.ageNum !== null ? `${row.ageNum} Yrs` : 'N/A')}</td>
                   <td>
-                    <span className={`gender-badge ${row.gender === 'Male' ? 'gender-male' : 'gender-female'}`}>
+                    <span style={{
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      background: row.gender === 'Male' ? '#e0f2fe' : '#fce7f3',
+                      color: row.gender === 'Male' ? '#0369a1' : '#be185d'
+                    }}>
                       {row.gender}
                     </span>
                   </td>
-                  <td style={{ color: '#cbd5e1' }}>{row.facilityName.length > 32 ? row.facilityName.substring(0, 30) + '...' : row.facilityName}</td>
+                  <td style={{ color: 'var(--text-main)' }}>{row.facilityName.length > 28 ? row.facilityName.substring(0, 26) + '...' : row.facilityName}</td>
                   <td style={{ color: 'var(--text-muted)' }}>{row.zoneName.replace(/ \(Zone \d+\)/, '')}</td>
                   <td>
-                    <span style={{ padding: '0.15rem 0.5rem', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', fontSize: '0.75rem' }}>
+                    <span style={{ padding: '0.15rem 0.5rem', background: '#f5f3ef', border: '1px solid #e5e0d8', borderRadius: '4px', fontSize: '0.75rem' }}>
                       {row.wardNo}
                     </span>
+                  </td>
+                  <td>
+                    {row.deathCategory === 'NMC' ? (
+                      <span style={{ background: '#fee2e2', color: '#dc2626', padding: '0.15rem 0.55rem', borderRadius: '4px', fontWeight: '700', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <AlertTriangle size={11} /> NMC Death
+                      </span>
+                    ) : row.deathCategory === 'Outside' ? (
+                      <span style={{ background: '#ffedd5', color: '#c2410c', padding: '0.15rem 0.55rem', borderRadius: '4px', fontWeight: '700', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <AlertTriangle size={11} /> Outside Death
+                      </span>
+                    ) : (
+                      <span style={{ color: '#a8a29e', fontSize: '0.78rem' }}>None</span>
+                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                   No matching patient records found. Try adjusting your search or filters.
                 </td>
               </tr>
@@ -111,89 +132,106 @@ export default function PatientTable({ data }) {
       </div>
 
       {/* Pagination Footer */}
-      <div className="pagination-bar">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-card)', flexWrap: 'wrap', gap: '1rem' }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           Showing {Math.min((currentPage - 1) * pageSize + 1, sortedData.length)} to {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length.toLocaleString()} records
         </span>
 
-        <div className="pagination-controls">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <button
-            className="page-btn"
+            className="btn-clear"
             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
+            style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
           >
-            <ChevronLeft size={14} /> Prev
+            <ChevronLeft size={14} style={{ display: 'inline' }} /> Prev
           </button>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', padding: '0 0.5rem' }}>
             Page {currentPage} of {totalPages}
           </span>
           <button
-            className="page-btn"
+            className="btn-clear"
             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
+            style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
           >
-            Next <ChevronRight size={14} />
+            Next <ChevronRight size={14} style={{ display: 'inline' }} />
           </button>
         </div>
       </div>
 
       {/* Patient Detail Modal */}
       {selectedPatient && (
-        <div className="modal-overlay" onClick={() => setSelectedPatient(null)}>
-          <div className="glass-card modal-card" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={() => setSelectedPatient(null)}>
-              <X size={20} />
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setSelectedPatient(null)}>
+          <div className="viz-card" style={{ maxWidth: '520px', width: '100%', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button className="btn-clear" style={{ position: 'absolute', right: '1rem', top: '1rem', padding: '0.3rem' }} onClick={() => setSelectedPatient(null)}>
+              <X size={16} />
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', display: 'flex', alignItems: 'center', justifyCenter: 'center' }}>
-                <User size={22} style={{ margin: 'auto' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.25rem' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#eef2ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={22} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.25rem', color: 'white' }}>{selectedPatient.patientName}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Record ID: #{selectedPatient.id} • NMC Incident Report</span>
+                <h3 style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>{selectedPatient.patientName}</h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Record ID: #{selectedPatient.id} • NMC IHIP Incident Report</span>
               </div>
             </div>
 
-            <div className="patient-detail-grid">
-              <div className="detail-item">
-                <span className="label"><Calendar size={12} inline /> Date of Onset</span>
-                <span className="value">{selectedPatient.dateOfOnset || `${selectedPatient.month} ${selectedPatient.year}`}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', fontSize: '0.85rem' }}>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Date of Onset</span>
+                <strong>{selectedPatient.dateOfOnset || `${selectedPatient.month} ${selectedPatient.year}`}</strong>
               </div>
 
-              <div className="detail-item">
-                <span className="label"><User size={12} inline /> Gender & Age</span>
-                <span className="value">{selectedPatient.gender}, {selectedPatient.ageStr || `${selectedPatient.ageNum} Years`}</span>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Gender & Age</span>
+                <strong>{selectedPatient.gender}, {selectedPatient.ageStr || `${selectedPatient.ageNum} Years`}</strong>
               </div>
 
-              <div className="detail-item">
-                <span className="label"><Phone size={12} inline /> Contact Number</span>
-                <span className="value">{selectedPatient.contact || 'Not Provided'}</span>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Contact Number</span>
+                <strong>{selectedPatient.contact || 'Not Provided'}</strong>
               </div>
 
-              <div className="detail-item">
-                <span className="label"><Tag size={12} inline /> Age Group Bracket</span>
-                <span className="value">{selectedPatient.ageGroup}</span>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Age Group Bracket</span>
+                <strong>{selectedPatient.ageGroup}</strong>
               </div>
 
-              <div className="detail-item" style={{ gridColumn: 'span 2' }}>
-                <span className="label"><Hospital size={12} inline /> Assigned Healthcare Facility</span>
-                <span className="value" style={{ color: '#fbbf24' }}>{selectedPatient.facilityName}</span>
+              <div style={{ gridColumn: 'span 2' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Healthcare Facility</span>
+                <strong style={{ color: '#d97706' }}>{selectedPatient.facilityName}</strong>
               </div>
 
-              <div className="detail-item">
-                <span className="label"><MapPin size={12} inline /> Zone Name</span>
-                <span className="value">{selectedPatient.zoneName}</span>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Zone Name</span>
+                <strong>{selectedPatient.zoneName}</strong>
               </div>
 
-              <div className="detail-item">
-                <span className="label"><MapPin size={12} inline /> Ward Number</span>
-                <span className="value">{selectedPatient.wardNo}</span>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Prabhag / Ward</span>
+                <strong>{selectedPatient.wardNo}</strong>
               </div>
 
-              <div className="detail-item" style={{ gridColumn: 'span 2' }}>
-                <span className="label"><MapPin size={12} inline /> Patient Address / Location</span>
-                <span className="value">{selectedPatient.address || selectedPatient.area || 'NMC Ward Record'}</span>
+              <div style={{ gridColumn: 'span 2' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Death Status (NMC/Outside)</span>
+                {selectedPatient.deathCategory === 'NMC' ? (
+                  <span style={{ background: '#fee2e2', color: '#dc2626', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
+                    <AlertTriangle size={13} /> NMC Death
+                  </span>
+                ) : selectedPatient.deathCategory === 'Outside' ? (
+                  <span style={{ background: '#ffedd5', color: '#c2410c', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
+                    <AlertTriangle size={13} /> Outside Death
+                  </span>
+                ) : (
+                  <strong style={{ color: '#16a34a' }}>No Fatality (Survivals)</strong>
+                )}
+              </div>
+
+              <div style={{ gridColumn: 'span 2' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Patient Address / Location</span>
+                <strong>{selectedPatient.address || selectedPatient.area || 'NMC Ward Record'}</strong>
               </div>
             </div>
           </div>

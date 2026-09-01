@@ -88,6 +88,24 @@ export async function fetchDogBiteData() {
           const dateOfOnset = (row['Date Of Onset'] || '').trim();
           const weekInfo = parseWeek(dateOfOnset);
 
+          // Parse Death (NMC / Outside)
+          const deathRaw = (
+            row['Death (NMC/Outside)'] ||
+            row['Death (NMC / Outside)'] ||
+            row['Death'] ||
+            ''
+          ).trim();
+
+          let deathCategory = 'None';
+          const dLower = deathRaw.toLowerCase();
+          if (dLower.includes('nmc')) {
+            deathCategory = 'NMC';
+          } else if (dLower.includes('outside')) {
+            deathCategory = 'Outside';
+          } else if (dLower === 'yes' || dLower === 'death') {
+            deathCategory = 'NMC';
+          }
+
           return {
             id: index + 1,
             year: (row['Year'] || 'Unknown').trim(),
@@ -107,6 +125,9 @@ export async function fetchDogBiteData() {
             facilityName: (row['Facility Name'] || 'Unspecified Facility').trim(),
             zoneName: (row['Zone Name'] || 'Unspecified Zone').trim(),
             wardNo: (row['Ward No.'] || 'Unspecified Ward').trim(),
+            deathRaw,
+            deathCategory,
+            isDeath: deathCategory !== 'None',
           };
         });
 

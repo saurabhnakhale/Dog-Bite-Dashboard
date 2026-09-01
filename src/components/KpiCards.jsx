@@ -1,7 +1,7 @@
 import React from 'react';
 import { Activity, Sun, MapPin, AlertTriangle } from 'lucide-react';
 
-export default function KpiCards({ stats, totalRecords }) {
+export default function KpiCards({ stats, filteredData }) {
   // 1. Total Cases
   const totalCases = stats.total;
 
@@ -13,7 +13,6 @@ export default function KpiCards({ stats, totalRecords }) {
     }
   });
 
-  // Shorten season label if long
   const topSeasonShort = topSeason.name.replace(/\s*\([^)]*\)/, '');
   const topSeasonPct = totalCases > 0 ? ((topSeason.count / totalCases) * 100).toFixed(1) : 0;
 
@@ -28,8 +27,24 @@ export default function KpiCards({ stats, totalRecords }) {
   });
   const topZonePct = totalCases > 0 ? ((topZone.count / totalCases) * 100).toFixed(1) : 0;
 
-  // 4. No. of Deaths (IHIP Portal data records 0 deaths among reported cases)
-  const deathCount = 0;
+  // 4. No. of Deaths (Calculated by NMC vs Outside jurisdiction)
+  let totalDeaths = 0;
+  let nmcDeaths = 0;
+  let outsideDeaths = 0;
+
+  if (filteredData && filteredData.length > 0) {
+    filteredData.forEach((r) => {
+      if (r.deathCategory === 'NMC') {
+        nmcDeaths++;
+        totalDeaths++;
+      } else if (r.deathCategory === 'Outside') {
+        outsideDeaths++;
+        totalDeaths++;
+      } else if (r.isDeath) {
+        totalDeaths++;
+      }
+    });
+  }
 
   return (
     <div
@@ -54,7 +69,7 @@ export default function KpiCards({ stats, totalRecords }) {
           {totalCases.toLocaleString()}
         </div>
         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          Reported incident cases
+          Total reported incidents
         </div>
       </div>
 
@@ -94,7 +109,7 @@ export default function KpiCards({ stats, totalRecords }) {
         </div>
       </div>
 
-      {/* KPI 4: No. of Deaths */}
+      {/* KPI 4: No. of Deaths (Specified by NMC or Outside) */}
       <div className="viz-card" style={{ padding: '1.1rem 1.35rem', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -104,11 +119,26 @@ export default function KpiCards({ stats, totalRecords }) {
             <AlertTriangle size={20} color="#ef4444" />
           </div>
         </div>
-        <div style={{ fontSize: '1.85rem', fontWeight: '800', color: '#1c1917', lineHeight: '1.1' }}>
-          {deathCount}
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem' }}>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', color: totalDeaths > 0 ? '#dc2626' : '#1c1917', lineHeight: '1.1' }}>
+            {totalDeaths}
+          </div>
+          {totalDeaths > 0 && (
+            <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#dc2626', background: '#fee2e2', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+              Fatality Case(s)
+            </span>
+          )}
         </div>
-        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          0 reported fatalities (0.0%)
+
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.4rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: nmcDeaths > 0 ? '700' : 'normal', color: nmcDeaths > 0 ? '#dc2626' : 'var(--text-muted)' }}>
+            NMC: <strong>{nmcDeaths}</strong>
+          </span>
+          <span>•</span>
+          <span style={{ fontWeight: outsideDeaths > 0 ? '700' : 'normal', color: outsideDeaths > 0 ? '#ea580c' : 'var(--text-muted)' }}>
+            Outside: <strong>{outsideDeaths}</strong>
+          </span>
         </div>
       </div>
     </div>
