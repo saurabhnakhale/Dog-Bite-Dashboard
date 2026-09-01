@@ -10,6 +10,7 @@ import PatientTable from './components/PatientTable';
 import { fetchDogBiteData } from './services/dataService';
 import Papa from 'papaparse';
 import { Download, RefreshCw, LayoutGrid, Calendar, Sun, Users, PieChart, MapPin, Grid } from 'lucide-react';
+import dogBiteLogo from './assets/dog_bite_logo.jpg';
 
 export default function App() {
   const [allData, setAllData] = useState([]);
@@ -253,14 +254,18 @@ export default function App() {
 
   return (
     <div className="dashboard-container">
-      {/* Centered Title & Subtitle Header with Right-side Live Stream & Actions */}
+      {/* Centered Title & Subtitle Header with Right-Side Logo Image and Live Stream Badge */}
       <div className="header-container">
-        {/* Empty left flex balance spacer */}
-        <div style={{ flex: '1', display: 'none' }} className="desktop-spacer" />
-
-        {/* Center Title and Subtitle */}
+        {/* Center Title with Image at Right Side of Title */}
         <div className="header-center-title">
-          <h1>Dog Bite Analysis Dashboard</h1>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.85rem' }}>
+            <h1>Dog Bite Analysis Dashboard</h1>
+            <img
+              src={dogBiteLogo}
+              alt="Dog Bite Illustration"
+              style={{ width: '56px', height: '56px', objectFit: 'contain', borderRadius: '8px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+            />
+          </div>
           <p>As per NMC - IHIP Portal</p>
         </div>
 
