@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import FilterBar from './components/FilterBar';
+import KpiCards from './components/KpiCards';
 import MonthlyTrendChart from './components/MonthlyTrendChart';
 import SeasonalDistChart from './components/SeasonalDistChart';
 import AgeBySexChart from './components/AgeBySexChart';
@@ -301,6 +302,9 @@ export default function App() {
         wards={filterOptions.wards}
         onReset={handleResetFilters}
       />
+
+      {/* Key Performance Indicators (KPI Cards) */}
+      <KpiCards stats={stats} totalRecords={dataMeta.totalCount} />
 
       {/* 6 Visualizations Grid */}
       <div className="grid-2col">
