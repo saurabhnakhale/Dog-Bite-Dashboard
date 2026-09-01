@@ -11,6 +11,7 @@ import { fetchDogBiteData } from './services/dataService';
 import Papa from 'papaparse';
 import { Download, RefreshCw, LayoutGrid, Calendar, Sun, Users, PieChart, MapPin, Grid } from 'lucide-react';
 import dogBiteLogo from './assets/dog_bite_logo.jpg';
+import ncdcLogo from './assets/ncdc_logo.png';
 
 export default function App() {
   const [allData, setAllData] = useState([]);
@@ -254,11 +255,15 @@ export default function App() {
 
   return (
     <div className="dashboard-container">
-      {/* Centered Title & Subtitle Header with Right-Side Logo Image and Live Stream Badge */}
+      {/* Centered Title Header with NCDC Emblem Logo on Left, Title in Middle, Dog Bite Logo on Right */}
       <div className="header-container">
-        {/* Center Title with Image at Right Side of Title */}
         <div className="header-center-title">
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.85rem' }}>
+            <img
+              src={ncdcLogo}
+              alt="NCDC Emblem"
+              style={{ width: '48px', height: '56px', objectFit: 'contain' }}
+            />
             <h1>Dog Bite Analysis Dashboard</h1>
             <img
               src={dogBiteLogo}
