@@ -1,4 +1,6 @@
 import React from 'react';
+import { Search, RotateCcw } from 'lucide-react';
+import MultiSelectFilter from './MultiSelectFilter';
 
 export default function FilterBar({
   filters,
@@ -10,99 +12,116 @@ export default function FilterBar({
   ageGroups,
   zones,
   wards,
-  onReset
+  onReset,
 }) {
-  const handleChange = (field, value) => {
-    setFilters(prev => ({ ...prev, [field]: value }));
-  };
+  const hasActiveFilters =
+    filters.year.length > 0 ||
+    filters.season.length > 0 ||
+    filters.month.length > 0 ||
+    filters.zone.length > 0 ||
+    filters.prabhag.length > 0 ||
+    filters.gender.length > 0 ||
+    filters.ageGroup.length > 0 ||
+    filters.search !== '';
 
   return (
     <div className="filter-card">
       <div className="filter-row">
-        <div className="filter-field">
-          <label className="filter-label">YEAR</label>
-          <select className="filter-select" value={filters.year} onChange={(e) => handleChange('year', e.target.value)}>
-            <option value="All">All</option>
-            {years.map(y => (
-              <option key={y.name} value={y.name}>{y.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* YEAR Multi-Select */}
+        <MultiSelectFilter
+          label="YEAR"
+          options={years}
+          selectedValues={filters.year}
+          onChange={(val) => setFilters((prev) => ({ ...prev, year: val }))}
+        />
 
-        <div className="filter-field">
-          <label className="filter-label">SEASON</label>
-          <select className="filter-select" value={filters.season} onChange={(e) => handleChange('season', e.target.value)}>
-            <option value="All">All</option>
-            {seasons.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
+        {/* SEASON Multi-Select */}
+        <MultiSelectFilter
+          label="SEASON"
+          options={seasons}
+          selectedValues={filters.season}
+          onChange={(val) => setFilters((prev) => ({ ...prev, season: val }))}
+        />
 
-        <div className="filter-field">
-          <label className="filter-label">MONTH</label>
-          <select className="filter-select" value={filters.month} onChange={(e) => handleChange('month', e.target.value)}>
-            <option value="All">All</option>
-            {months.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
+        {/* MONTH Multi-Select */}
+        <MultiSelectFilter
+          label="MONTH"
+          options={months}
+          selectedValues={filters.month}
+          onChange={(val) => setFilters((prev) => ({ ...prev, month: val }))}
+        />
 
-        <div className="filter-field">
-          <label className="filter-label">ZONE</label>
-          <select className="filter-select" value={filters.zone} onChange={(e) => handleChange('zone', e.target.value)}>
-            <option value="All">All</option>
-            {zones.map(z => (
-              <option key={z.name} value={z.name}>{z.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* ZONE Multi-Select */}
+        <MultiSelectFilter
+          label="ZONE"
+          options={zones}
+          selectedValues={filters.zone}
+          onChange={(val) => setFilters((prev) => ({ ...prev, zone: val }))}
+        />
 
-        <div className="filter-field">
-          <label className="filter-label">WARD</label>
-          <select className="filter-select" value={filters.ward} onChange={(e) => handleChange('ward', e.target.value)}>
-            <option value="All">All</option>
-            {wards.map(w => (
-              <option key={w.name} value={w.name}>{w.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* PRABHAG (Renamed from WARD) Multi-Select */}
+        <MultiSelectFilter
+          label="PRABHAG"
+          options={wards}
+          selectedValues={filters.prabhag}
+          onChange={(val) => setFilters((prev) => ({ ...prev, prabhag: val }))}
+        />
 
-        <div className="filter-field">
-          <label className="filter-label">SEX</label>
-          <select className="filter-select" value={filters.gender} onChange={(e) => handleChange('gender', e.target.value)}>
-            <option value="All">All</option>
-            {genders.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-        </div>
+        {/* SEX Multi-Select */}
+        <MultiSelectFilter
+          label="SEX"
+          options={genders}
+          selectedValues={filters.gender}
+          onChange={(val) => setFilters((prev) => ({ ...prev, gender: val }))}
+        />
 
-        <div className="filter-field">
-          <label className="filter-label">AGE BAND</label>
-          <select className="filter-select" value={filters.ageGroup} onChange={(e) => handleChange('ageGroup', e.target.value)}>
-            <option value="All">All</option>
-            {ageGroups.map(ag => (
-              <option key={ag} value={ag}>{ag}</option>
-            ))}
-          </select>
-        </div>
+        {/* AGE BAND Multi-Select */}
+        <MultiSelectFilter
+          label="AGE BAND"
+          options={ageGroups}
+          selectedValues={filters.ageGroup}
+          onChange={(val) => setFilters((prev) => ({ ...prev, ageGroup: val }))}
+        />
 
+        {/* SEARCH NAME/ADDRESS Text Input */}
         <div className="filter-field wide">
           <label className="filter-label">SEARCH NAME/ADDRESS</label>
-          <input
-            type="text"
-            className="filter-input"
-            placeholder="Type to search..."
-            value={filters.search}
-            onChange={(e) => handleChange('search', e.target.value)}
-          />
+          <div style={{ position: 'relative' }}>
+            <Search
+              size={14}
+              style={{
+                position: 'absolute',
+                left: '0.65rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#a8a29e',
+              }}
+            />
+            <input
+              type="text"
+              className="filter-input"
+              style={{ paddingLeft: '2rem' }}
+              placeholder="Type to search..."
+              value={filters.search}
+              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+            />
+          </div>
         </div>
 
-        <button className="btn-clear" onClick={onReset}>
-          Clear filters
-        </button>
+        {/* Clear Filters Button */}
+        {hasActiveFilters && (
+          <button
+            className="btn-clear"
+            onClick={onReset}
+            style={{
+              background: '#fef2f2',
+              borderColor: '#fca5a5',
+              color: '#dc2626',
+            }}
+          >
+            <RotateCcw size={13} style={{ display: 'inline', marginRight: '0.3rem' }} /> Clear filters
+          </button>
+        )}
       </div>
     </div>
   );

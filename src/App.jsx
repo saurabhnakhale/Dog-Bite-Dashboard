@@ -19,14 +19,15 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Multi-select arrays state
   const [filters, setFilters] = useState({
-    year: 'All',
-    season: 'All',
-    month: 'All',
-    zone: 'All',
-    ward: 'All',
-    gender: 'All',
-    ageGroup: 'All',
+    year: [],
+    season: [],
+    month: [],
+    zone: [],
+    prabhag: [],
+    gender: [],
+    ageGroup: [],
     search: '',
   });
 
@@ -49,16 +50,16 @@ export default function App() {
     loadData();
   }, []);
 
-  // Filtered dataset computation
+  // Filtered dataset computation supporting multi-selection
   const filteredData = useMemo(() => {
     return allData.filter(item => {
-      if (filters.year !== 'All' && item.year !== filters.year) return false;
-      if (filters.season !== 'All' && item.season !== filters.season) return false;
-      if (filters.month !== 'All' && item.month !== filters.month) return false;
-      if (filters.zone !== 'All' && item.zoneName !== filters.zone) return false;
-      if (filters.ward !== 'All' && item.wardNo !== filters.ward) return false;
-      if (filters.gender !== 'All' && item.gender !== filters.gender) return false;
-      if (filters.ageGroup !== 'All' && item.ageGroup !== filters.ageGroup) return false;
+      if (filters.year.length > 0 && !filters.year.includes(item.year)) return false;
+      if (filters.season.length > 0 && !filters.season.includes(item.season)) return false;
+      if (filters.month.length > 0 && !filters.month.includes(item.month)) return false;
+      if (filters.zone.length > 0 && !filters.zone.includes(item.zoneName)) return false;
+      if (filters.prabhag.length > 0 && !filters.prabhag.includes(item.wardNo)) return false;
+      if (filters.gender.length > 0 && !filters.gender.includes(item.gender)) return false;
+      if (filters.ageGroup.length > 0 && !filters.ageGroup.includes(item.ageGroup)) return false;
 
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -217,13 +218,13 @@ export default function App() {
 
   const handleResetFilters = () => {
     setFilters({
-      year: 'All',
-      season: 'All',
-      month: 'All',
-      zone: 'All',
-      ward: 'All',
-      gender: 'All',
-      ageGroup: 'All',
+      year: [],
+      season: [],
+      month: [],
+      zone: [],
+      prabhag: [],
+      gender: [],
+      ageGroup: [],
       search: '',
     });
   };
@@ -287,7 +288,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Filter Bar */}
+      {/* Multi-Select Filter Bar */}
       <FilterBar
         filters={filters}
         setFilters={setFilters}
@@ -306,7 +307,12 @@ export default function App() {
         <MonthlyTrendChart
           monthlyCounts={stats.monthlyCounts}
           yearlyTrends={stats.yearlyTrends}
-          onSelectMonth={(month) => setFilters(prev => ({ ...prev, month }))}
+          onSelectMonth={(month) => {
+            setFilters(prev => ({
+              ...prev,
+              month: prev.month.includes(month) ? prev.month : [...prev.month, month]
+            }));
+          }}
         />
         <SeasonalDistChart
           seasonCounts={stats.seasonCounts}
